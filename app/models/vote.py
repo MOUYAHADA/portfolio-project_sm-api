@@ -2,12 +2,11 @@
 Module for Vote class model
 """
 
-from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.types import Integer, String, Boolean, TIMESTAMP
-from sqlalchemy import Column, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import Column, ForeignKey, PrimaryKeyConstraint, func
 from datetime import datetime, timezone
 
-from models.post import Base
+from .base import Base
 
 
 class Vote(Base):
@@ -17,5 +16,10 @@ class Vote(Base):
 
     post_id = Column(Integer, ForeignKey("posts.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
 
     __table_args__ = (PrimaryKeyConstraint("user_id", "post_id"),)

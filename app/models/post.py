@@ -1,14 +1,7 @@
-"""
-Module for Post class model
-"""
-
-from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy.types import Integer, String, Boolean, TIMESTAMP
-from sqlalchemy import Column, ForeignKey, func
-from datetime import datetime, timezone
-
-Base = declarative_base()
-
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, TIMESTAMP
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from .base import Base
 
 class Post(Base):
     """Post model"""
@@ -32,4 +25,4 @@ class Post(Base):
     )
 
     owner_id = Column(Integer, ForeignKey('users.id'))
-    owner = relationship('Users', back_populates=True)
+    owner = relationship("User")  # Corrected relationship

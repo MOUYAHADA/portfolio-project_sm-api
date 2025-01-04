@@ -7,7 +7,7 @@ from sqlalchemy.types import Integer, String, Boolean, TIMESTAMP
 from sqlalchemy import Column, ForeignKey, func
 from datetime import datetime, timezone
 
-from models.post import Base
+from .base import Base
 
 
 class User(Base):
