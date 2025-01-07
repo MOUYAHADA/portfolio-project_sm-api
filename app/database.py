@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import NoResultFound
 
 from config import settings
-from models import User, Post, Base
+from models import User, Post, Vote, Comment, Base
 from utils import hash_password
 
 
@@ -33,29 +33,29 @@ class DB:
     def find_user(self, **kwargs) -> User:
         """Find a user using their username"""
         for key, value in kwargs.items():
-            if key in {'id', 'username', 'email'}:
-              result = self._session.query(User).filter(getattr(User, key) == value).one()
-              if result is not None:
-                  return result
+            if key in {"id", "username", "email"}:
+                result = (
+                    self._session.query(User).filter(getattr(User, key) == value).one()
+                )
+                if result is not None:
+                    return result
         raise NoResultFound
 
-    def find_user_with_email(self, email: str) -> User:
-        """Find a user using their email"""
-        if email:
-            result = self._session.query(User).filter(User.email == email).one()
-            if result is None:
-                raise NoResultFound
-            return result
-        raise ValueError("email argument was not given")
-
-    def get_all_posts(self, limit: int = 0):
+    def get_posts(self, limit: int = 0, search: str = ""):
         """Get all posts"""
-        posts = self._session.query(Post).limit(limit).all()
+        query = self._session.query(Post)
+        if search:
+            query = query.filter(
+                or_(Post.title.icontains(search), Post.content.icontains(search))
+            )
+        if limit:
+            query = query.limit(limit)
+
+        posts = query.all()
         return posts
 
     def find_post_with_id(self, id: str):
-        """Find an existing post using its id
-        """
+        """Find an existing post using its id"""
         post = self._session.query(Post).filter_by(id=id).first()
         if post is None:
             raise NoResultFound
@@ -73,23 +73,22 @@ class DB:
             self._session.add(new_post)
             self._session.commit()
             return new_post
-        
+
     def update_post(self, post_id: int, **kwargs):
         """Update an existing post"""
         post = self.find_post_with_id(id=post_id)
         for key, value in kwargs.items():
-            if not hasattr(post, key):
+            if not hasattr(post, key) or key not in {'title', 'content', 'published', 'owner_id'}:
                 self._session.rollback()
                 raise ValueError(f"Post object has no attribute named {key}")
             else:
                 setattr(post, key, value)
-        
+
         self._session.commit()
         return post
 
     def create_user(self, username: str, email: str, password: str):
-        """Create a new user
-        """
+        """Create a new user"""
         if username and email and password:
             try:
                 self.find_user(email=email)
@@ -113,14 +112,34 @@ class DB:
             return new_user
 
     def update_user_password(self, user_id: int, password: str):
-        """Update a user
-        """
+        """Update a user"""
         user = self._session.query(User).filter_by(id=user_id).one()
         if user is None:
             raise NoResultFound
-        
+
         user.hashed_password = hash_password(password)
         self._session.commit()
+
+    def create_vote(self, user_id: int, post_id: int, dir: int):
+        """Create a new vote for a user on a post
+        """
+        if dir not in (0, 1):
+            raise ValueError("Invalid vote direction. Use 0 for downvote and 1 for upvote.")
+
+        # Check if the user has already voted on this post
+        existing_vote = self._session.query(Vote).filter_by(user_id=user_id, post_id=post_id).first()
+        
+        if existing_vote:
+            # If a vote exists, update it (change the direction)
+            existing_vote.dir = dir
+            self._session.commit()
+            return existing_vote
+        
+        # If no vote exists, create a new vote
+        new_vote = Vote(user_id=user_id, post_id=post_id, dir=dir)
+        self._session.add(new_vote)
+        self._session.commit()
+        return new_vote
 
 
 def get_db():

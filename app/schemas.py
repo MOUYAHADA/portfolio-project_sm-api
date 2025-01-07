@@ -1,85 +1,94 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, conint
 from datetime import datetime
 
+
+# User Schemas
 class UserCreate(BaseModel):
-  """Schema for creating a user
-  """
-  username: str
-  email: str
-  password: str
+    """Schema for creating a user"""
+
+    username: str
+    email: str
+    password: str
+
 
 class UserDisplay(BaseModel):
-  """Schema for displaying a user
-  """
-  id: int
-  username: str
-  email: EmailStr
-  created_at: datetime
+    """Schema for displaying a user"""
 
-  class Config:
-    from_attributes = True
+    id: int
+    username: str
+    email: EmailStr
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 
 class UserPassword(BaseModel):
-  """Schema for user password
-  """
-  password: str
+    """Schema for user password"""
+
+    password: str
 
 
-# POSTS
-
+# Post Schemas
 class PostCreate(BaseModel):
-  """Schema for creating a post
-  """
-  title: str
-  content: str
-  owner_id: int
-  published: bool = False
+    """Schema for creating a post"""
+
+    title: str
+    content: str
+    owner_id: int
+    published: bool = False
+
 
 class PostDisplay(BaseModel):
-  """Schema for displaying a post
-  """
-  id: int
-  title: str
-  content: str
-  published: bool
+    """Schema for displaying a post"""
 
-  created_at: datetime
-  updated_at: datetime
+    id: int
+    title: str
+    content: str
+    published: bool
+    created_at: datetime
+    updated_at: datetime
+    owner: UserDisplay
 
-  owner: UserDisplay
+    class Config:
+        from_attributes = True
 
-  class Config:
-    from_attributes = True
 
-# Comment
-
+# Comment Schemas
 class CommentCreate(BaseModel):
-  """Schema for creating a comment
-  """
-  content: str
-  
+    """Schema for creating a comment"""
+
+    content: str
+
+
 class CommentDisplay(CommentCreate):
-  """Schema for displaying a comment
-  """
-  id: int
-  owner_id: int
-  post_id: int
-  content: str
-  created_at: datetime
-  updated_at: datetime
+    """Schema for displaying a comment"""
 
-# Votes
+    id: int
+    owner_id: int
+    post_id: int
+    created_at: datetime
+    updated_at: datetime
 
+
+# Vote Schemas
 class VoteCreate(BaseModel):
-  """Schema for creating a vote
-  """
-  owner_id: int
-  post_id: int
+    """Schema for creating a vote"""
+
+    post_id: int
+    dir: conint(strict=True, ge=0, le=1)  # 1 = Upvote, 0 = Remove vote
+
 
 class VoteDisplay(BaseModel):
-  """Schema for displaying a vote
-  """
-  user_id: int
-  post_id: int
+    """Schema for displaying a vote"""
 
-  created_at: datetime
+    user: UserDisplay
+    post_id: int
+    created_at: datetime
+
+
+# Token Schema
+class TokenData(BaseModel):
+    """Schema for the token payload"""
+
+    id: int | None = None

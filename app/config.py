@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     db_host: str
     db_port: str
     db_name: str
+    jwt_secret_key: str
+    jwt_algorithm: str
+    jwt_access_token_expire_minutes: int
 
     class Config:
         env_file = ".env"
