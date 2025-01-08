@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Module for general config settings
+"""
 from pydantic_settings import BaseSettings
 
 

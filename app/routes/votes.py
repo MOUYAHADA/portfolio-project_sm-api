@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Module for votes route
+"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from schemas import VoteCreate
 from models import User, Vote
@@ -8,6 +12,7 @@ router = APIRouter(
     prefix="/votes",
     tags=["Votes"],
 )
+
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def vote(

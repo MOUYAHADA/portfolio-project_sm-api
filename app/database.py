@@ -1,8 +1,12 @@
+#!/usr/bin/env python3
+"""
+Module for database class
+"""
 from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import NoResultFound
 
-from config import settings
+from config import settings as s
 from models import User, Post, Vote, Comment, Base
 from utils import hash_password
 
@@ -12,7 +16,10 @@ class DB:
 
     def __init__(self):
         """Initialize DB"""
-        db_url = f"postgresql://{settings.db_username}:{settings.db_password}@{settings.db_host}:{settings.db_port}/{settings.db_name}"
+        db_url = (
+            f"postgresql://{s.db_username}:{s.db_password}"
+            + f"@{s.db_host}:{s.db_port}/{s.db_name}"
+        )
         self.engine = create_engine(db_url)
         Base.metadata.create_all(bind=self.engine)
         self.__session = None
@@ -35,21 +42,27 @@ class DB:
         for key, value in kwargs.items():
             if key in {"id", "username", "email"}:
                 result = (
-                    self._session.query(User).filter(getattr(User, key) == value).one()
+                    self._session.query(User)
+                    .filter(getattr(User, key) == value)
+                    .first()
                 )
                 if result is not None:
                     return result
         raise NoResultFound
 
-    def get_posts(self, limit: int = 0, search: str = ""):
+    def get_posts(self, skip: int = 0, limit: int = 0, search: str = ""):
         """Get all posts"""
         query = self._session.query(Post)
         if search:
             query = query.filter(
-                or_(Post.title.icontains(search), Post.content.icontains(search))
+                or_(
+                    Post.title.icontains(search), Post.content.icontains(search)
+                )
             )
         if limit:
             query = query.limit(limit)
+        if skip:
+            query = query.offset(skip)
 
         posts = query.all()
         return posts
@@ -78,7 +91,12 @@ class DB:
         """Update an existing post"""
         post = self.find_post_with_id(id=post_id)
         for key, value in kwargs.items():
-            if not hasattr(post, key) or key not in {'title', 'content', 'published', 'owner_id'}:
+            if not hasattr(post, key) or key not in {
+                "title",
+                "content",
+                "published",
+                "owner_id",
+            }:
                 self._session.rollback()
                 raise ValueError(f"Post object has no attribute named {key}")
             else:
@@ -97,7 +115,9 @@ class DB:
                 pass
             try:
                 self.find_user(username=username)
-                raise ValueError(f"User with username {username} already exists")
+                raise ValueError(
+                    f"User with username {username} already exists"
+                )
             except NoResultFound:
                 pass
 
@@ -121,20 +141,25 @@ class DB:
         self._session.commit()
 
     def create_vote(self, user_id: int, post_id: int, dir: int):
-        """Create a new vote for a user on a post
-        """
+        """Create a new vote for a user on a post"""
         if dir not in (0, 1):
-            raise ValueError("Invalid vote direction. Use 0 for downvote and 1 for upvote.")
+            raise ValueError(
+                "Invalid vote direction. Use 0 for downvote and 1 for upvote."
+            )
 
         # Check if the user has already voted on this post
-        existing_vote = self._session.query(Vote).filter_by(user_id=user_id, post_id=post_id).first()
-        
+        existing_vote = (
+            self._session.query(Vote)
+            .filter_by(user_id=user_id, post_id=post_id)
+            .first()
+        )
+
         if existing_vote:
             # If a vote exists, update it (change the direction)
             existing_vote.dir = dir
             self._session.commit()
             return existing_vote
-        
+
         # If no vote exists, create a new vote
         new_vote = Vote(user_id=user_id, post_id=post_id, dir=dir)
         self._session.add(new_vote)

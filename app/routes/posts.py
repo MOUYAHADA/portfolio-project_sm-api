@@ -1,40 +1,60 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
-from database import DB
-from database import get_db
-from schemas import PostCreate, PostDisplay
+#!/usr/bin/python3
+"""
+Module for posts route
+"""
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Query
 from sqlalchemy.exc import NoResultFound
-from datetime import datetime, timezone
+from typing import List
+
+from schemas import PostCreate, PostDisplay, PostDisplayAll
+from database import get_db, DB
+from models import User
+from oauth2 import get_current_user
 
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
-@router.get("/")
-def get_posts(limit: int = 10, db: DB = Depends(get_db)):
+@router.get("/", response_model=List[PostDisplay])
+def get_posts(
+    skip: int = Query(0, ge=0, description="Number of posts to skip"),
+    limit: int = Query(10, gt=0, description="Number of posts to fetch"),
+    db: DB = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """View all posts"""
-    posts = db.get_posts(limit)
+    posts = db.get_posts(skip, limit)
     return posts
 
 
-@router.get("/search")
-def get_posts(query: str, limit: int = 10, db: DB = Depends(get_db)):
-    """Search for posts"""
-    posts = db.get_posts(limit, search=query)
-    return posts
-
-
-@router.post("/", response_model=PostDisplay)
-def create_post(post: PostCreate, db: DB = Depends(get_db)):
+@router.post("/", response_model=PostDisplayAll)
+def create_post(
+    post: PostCreate,
+    db: DB = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Create a new post"""
     data = post.model_dump()
+    data["owner_id"] = current_user.id
     new_post = db.create_post(**data)
     return new_post
 
 
-@router.put("/{id}", response_model=PostDisplay)
-def update_post(id: int, post: PostCreate, db: DB = Depends(get_db)):
+@router.put("/{id}", response_model=PostDisplayAll)
+def update_post(
+    id: int,
+    post: PostCreate,
+    db: DB = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     """Update an existing post"""
     try:
+        old_post = db.find_post_with_id(id=id)
+        if old_post.owner_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not allowed to update this post",
+            )
         data = post.model_dump()
         new_post = db.update_post(post_id=id, **data)
         return new_post
@@ -44,18 +64,24 @@ def update_post(id: int, post: PostCreate, db: DB = Depends(get_db)):
         )
 
 
-@router.delete("/{post_id}", response_model=PostDisplay)
-def delete_post(post_id: int, db: DB = Depends(get_db)):
-    """Update an existing post"""
+@router.delete("/{post_id}", status_code=status.HTTP_200_OK)
+def delete_post(
+    post_id: int,
+    db: DB = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a post"""
     try:
         post = db.find_post_with_id(id=post_id)
+        if current_user.id != post.owner_id:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                detail="You are not allowed to modify/delete this post",
+            )
         db._session.delete(post)
         db._session.commit()
-        return Response(
-            content="Post deleted successfully",
-            status_code=status.HTTP_202_ACCEPTED
-        )
+        return {"detail": "Post deleted successfully"}
     except NoResultFound:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Post doesn't exist"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
         )

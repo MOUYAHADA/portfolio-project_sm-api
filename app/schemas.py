@@ -1,5 +1,10 @@
+#!/usr/bin/env python3
+"""
+Module for pydantic schemas
+"""
 from pydantic import BaseModel, EmailStr, conint
 from datetime import datetime
+from typing import List
 
 
 # User Schemas
@@ -35,24 +40,28 @@ class PostCreate(BaseModel):
 
     title: str
     content: str
-    owner_id: int
     published: bool = False
 
 
-class PostDisplay(BaseModel):
+class PostDisplayMin(BaseModel):
     """Schema for displaying a post"""
 
     id: int
     title: str
     content: str
-    published: bool
-    created_at: datetime
-    updated_at: datetime
-    owner: UserDisplay
-
     class Config:
         from_attributes = True
 
+class PostDisplay(PostDisplayMin):
+    """Schema for displaying a post"""
+    published: bool
+    owner_id: int
+
+class PostDisplayAll(PostDisplay):
+    """Schema for displaying a post"""
+    created_at: datetime
+    updated_at: datetime
+    owner: UserDisplay
 
 # Comment Schemas
 class CommentCreate(BaseModel):
@@ -92,3 +101,7 @@ class TokenData(BaseModel):
     """Schema for the token payload"""
 
     id: int | None = None
+
+class UserDisplayWithPosts(UserDisplay):
+    """Schema for displaying a user and their posts"""
+    posts: List[PostDisplayMin]

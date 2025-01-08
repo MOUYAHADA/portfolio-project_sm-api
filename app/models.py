@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+Module for database models
+"""
 from sqlalchemy import (
     Column,
     Integer,
@@ -38,7 +42,9 @@ class Post(Base):
     owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     owner = relationship("User", back_populates="posts")
 
-    comments = relationship("Comment", back_populates="post", cascade="all, delete")
+    comments = relationship(
+        "Comment", back_populates="post", cascade="all, delete"
+    )
     votes = relationship("Vote", back_populates="post", cascade="all, delete")
 
 
@@ -57,7 +63,9 @@ class User(Base):
     )
 
     posts = relationship("Post", back_populates="owner", cascade="all, delete")
-    comments = relationship("Comment", back_populates="user", cascade="all, delete")
+    comments = relationship(
+        "Comment", back_populates="user", cascade="all, delete"
+    )
     votes = relationship("Vote", back_populates="user", cascade="all, delete")
 
 
@@ -66,8 +74,12 @@ class Vote(Base):
 
     __tablename__ = "votes"
 
-    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    post_id = Column(
+        Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     created_at = Column(
         TIMESTAMP(timezone=True),
         nullable=False,
@@ -88,8 +100,12 @@ class Comment(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     content = Column(String, nullable=False)
 
-    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    post_id = Column(
+        Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
 
     created_at = Column(
         TIMESTAMP(timezone=True),
