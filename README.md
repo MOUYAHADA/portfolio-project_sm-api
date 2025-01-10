@@ -41,7 +41,7 @@ This is a **social media application** built using **FastAPI**. It supports feat
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/MOUYAHADA/sm_app.git
+   git clone https://github.com/MOUYAHADA/portfolio-project_sm-api.git
    cd fastapi-social-media
    ```
 
