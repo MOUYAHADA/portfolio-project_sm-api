@@ -6,9 +6,9 @@ from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import NoResultFound
 
-from config import settings as s
-from models import User, Post, Vote, Comment, Base
-from utils import hash_password
+from app.config import settings as s
+from app.models import User, Post, Vote, Comment, Base
+from app.utils import hash_password
 
 
 class DB:
@@ -83,6 +83,7 @@ class DB:
             new_post.title = title
             new_post.content = content
             new_post.owner_id = owner_id
+            new_post.published = published
             self._session.add(new_post)
             self._session.commit()
             return new_post

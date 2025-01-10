@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response, Query
 from sqlalchemy.exc import NoResultFound
 from typing import List
 
-from schemas import PostCreate, PostDisplay, PostDisplayAll
-from database import get_db, DB
-from models import User
-from oauth2 import get_current_user
+from app.schemas import PostCreate, PostDisplay, PostDisplayAll
+from app.database import get_db, DB
+from app.models import User
+from app.oauth2 import get_current_user
 
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
@@ -25,6 +25,21 @@ def get_posts(
     """View all posts"""
     posts = db.get_posts(skip, limit)
     return posts
+
+@router.get("/{post_id}", response_model=PostDisplayAll)
+def get_posts(
+    post_id: int,
+    db: DB = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """View all posts"""
+    try:
+        post = db.find_post_with_id(id=post_id)
+        return post
+    except NoResultFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Post doesn't exist"
+        )
 
 
 @router.post("/", response_model=PostDisplayAll)

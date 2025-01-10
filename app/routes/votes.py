@@ -3,10 +3,10 @@
 Module for votes route
 """
 from fastapi import APIRouter, Depends, HTTPException, status
-from schemas import VoteCreate
-from models import User, Vote
-from database import get_db, DB
-from oauth2 import get_current_user
+from app.schemas import VoteCreate
+from app.models import User, Vote
+from app.database import get_db, DB
+from app.oauth2 import get_current_user
 
 router = APIRouter(
     prefix="/votes",

@@ -4,10 +4,11 @@ Module for user authentication route
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from database import get_db, DB
-from utils import verify_password
-from oauth2 import create_access_token
 from sqlalchemy.exc import NoResultFound
+
+from app.database import get_db, DB
+from app.utils import verify_password
+from app.oauth2 import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 

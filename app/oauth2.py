@@ -7,10 +7,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import jwt
 
-from database import get_db, DB, NoResultFound
-from models import User
-from schemas import TokenData
-from config import settings
+from app.database import get_db, DB, NoResultFound
+from app.schemas import TokenData
+from app.config import settings
 
 SECRET_KEY = settings.jwt_secret_key
 ALGORITHM = settings.jwt_algorithm

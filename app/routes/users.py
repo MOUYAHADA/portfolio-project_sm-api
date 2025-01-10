@@ -5,10 +5,10 @@ Module for users route
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from typing import List, Any
 
-from database import get_db, DB, NoResultFound
-from schemas import UserCreate, UserDisplay, UserPassword, UserDisplayWithPosts
-from oauth2 import get_current_user
-from models import User
+from app.database import get_db, DB, NoResultFound
+from app.schemas import UserCreate, UserDisplay, UserPassword, UserDisplayWithPosts
+from app.oauth2 import get_current_user
+from app.models import User
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -59,7 +59,7 @@ def update_user_password(
 ):
     try:
         db.update_user_password(user_id=current_user.id, password=pw.password)
-        return {"message": "Successfully updated"}
+        return {"message": "Successfully updated user password"}
     except NoResultFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User doesn't exist"

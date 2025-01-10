@@ -3,7 +3,7 @@
 Main FastAPI app module
 """
 from fastapi import FastAPI
-from routes import posts, users, votes, auth, comments
+from app.routes import posts, users, votes, auth, comments
 
 app = FastAPI()
 

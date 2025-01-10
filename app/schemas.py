@@ -34,52 +34,6 @@ class UserPassword(BaseModel):
     password: str
 
 
-# Post Schemas
-class PostCreate(BaseModel):
-    """Schema for creating a post"""
-
-    title: str
-    content: str
-    published: bool = False
-
-
-class PostDisplayMin(BaseModel):
-    """Schema for displaying a post"""
-
-    id: int
-    title: str
-    content: str
-    class Config:
-        from_attributes = True
-
-class PostDisplay(PostDisplayMin):
-    """Schema for displaying a post"""
-    published: bool
-    owner_id: int
-
-class PostDisplayAll(PostDisplay):
-    """Schema for displaying a post"""
-    created_at: datetime
-    updated_at: datetime
-    owner: UserDisplay
-
-# Comment Schemas
-class CommentCreate(BaseModel):
-    """Schema for creating a comment"""
-
-    content: str
-
-
-class CommentDisplay(CommentCreate):
-    """Schema for displaying a comment"""
-
-    id: int
-    owner_id: int
-    post_id: int
-    created_at: datetime
-    updated_at: datetime
-
-
 # Vote Schemas
 class VoteCreate(BaseModel):
     """Schema for creating a vote"""
@@ -96,12 +50,70 @@ class VoteDisplay(BaseModel):
     created_at: datetime
 
 
+# Post Schemas
+class PostCreate(BaseModel):
+    """Schema for creating a post"""
+
+    title: str
+    content: str
+    published: bool = False
+
+
+class PostDisplayMin(BaseModel):
+    """Schema for displaying a post"""
+
+    id: int
+    title: str
+    content: str
+
+    class Config:
+        from_attributes = True
+
+
+class PostDisplay(PostDisplayMin):
+    """Schema for displaying a post"""
+
+    published: bool
+    owner_id: int
+
+
+class PostDisplayAll(PostDisplay):
+    """Schema for displaying a post"""
+
+    created_at: datetime
+    updated_at: datetime
+    owner: UserDisplay
+    votes: List[VoteDisplay]
+
+
+# Comment Schemas
+class CommentCreate(BaseModel):
+    """Schema for creating a comment"""
+
+    content: str
+    post_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class CommentDisplay(CommentCreate):
+    """Schema for displaying a comment"""
+
+    id: int
+    owner_id: int
+    created_at: datetime
+    updated_at: datetime
+
+
 # Token Schema
 class TokenData(BaseModel):
     """Schema for the token payload"""
 
     id: int | None = None
 
+
 class UserDisplayWithPosts(UserDisplay):
     """Schema for displaying a user and their posts"""
+
     posts: List[PostDisplayMin]
